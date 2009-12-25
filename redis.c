@@ -454,6 +454,7 @@ static void lrangeCommand(redisClient *c);
 static void ltrimCommand(redisClient *c);
 static void typeCommand(redisClient *c);
 static void lsetCommand(redisClient *c);
+static void lsearchCommand(redisClient *c);
 static void saddCommand(redisClient *c);
 static void sremCommand(redisClient *c);
 static void smoveCommand(redisClient *c);
@@ -518,6 +519,7 @@ static struct redisCommand cmdTable[] = {
     {"ltrim",ltrimCommand,4,REDIS_CMD_INLINE},
     {"lrem",lremCommand,4,REDIS_CMD_BULK},
     {"rpoplpush",rpoplpushcommand,3,REDIS_CMD_BULK|REDIS_CMD_DENYOOM},
+    {"lsearch",lsearchCommand,3,REDIS_CMD_INLINE},
     {"sadd",saddCommand,3,REDIS_CMD_BULK|REDIS_CMD_DENYOOM},
     {"srem",sremCommand,3,REDIS_CMD_BULK},
     {"smove",smoveCommand,4,REDIS_CMD_BULK},
@@ -3788,6 +3790,43 @@ static void rpoplpushcommand(redisClient *c) {
     }
 }
 
+static void lsearchCommand(redisClient *c) {
+    robj *o;
+    robj *ele;
+    list *list;
+    listNode *ln;
+    sds pattern = c->argv[2]->ptr;
+    int plen = sdslen(pattern);
+    unsigned long numitems = 0;
+
+    o = lookupKeyRead(c->db,c->argv[1]);
+    if (o == NULL) {
+        addReply(c,shared.nullmultibulk);
+        return;
+    }
+    if (o->type != REDIS_LIST) {
+        addReply(c,shared.wrongtypeerr);
+        return;
+    }
+
+    robj *lenobj = createObject(REDIS_STRING,NULL);
+    addReply(c,lenobj);
+
+    list = o->ptr;
+
+    listRewind(list);
+    while((ln = listYield(list))) {
+        ele = listNodeValue(ln);
+        if ((pattern[0] == '*' && pattern[1] == '\0') ||
+            stringmatchlen(pattern,plen,ele->ptr,sdslen(ele->ptr),0)) {
+                addReplyBulkLen(c,ele);
+                addReply(c,ele);
+                addReply(c,shared.crlf);
+                numitems++;
+        }
+    }
+    lenobj->ptr = sdscatprintf(sdsempty(),"*%lu\r\n",numitems);
+}
 
 /* ==================================== Sets ================================ */
 

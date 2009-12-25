@@ -750,6 +750,19 @@ proc main {server port} {
         format $err
     } {ERR*value*}
 
+    test {LSEARCH against non list value} {
+        $r set nolist foobar
+        catch {$r lsearch nolist *} err
+        format $err
+    } {ERR*value*}
+
+    test {LSEARCH} {
+        $r lpush alist bar
+        $r lpush alist baz
+        $r lpush alist brr
+        $r lsearch alist ba*
+    } {baz bar}
+
     test {SADD, SCARD, SISMEMBER, SMEMBERS basics} {
         $r sadd myset foo
         $r sadd myset bar
