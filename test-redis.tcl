@@ -1067,6 +1067,14 @@ proc main {server port} {
         list $foo_seen $bar_seen
     } {1 1}
 
+    test {RANDOMKEYSEARCH} {
+        $r flushdb
+        $r set foo x
+        $r set fred y
+        $r set bar y
+        string match f* [$r randomkeysearch f*]
+    } {1}
+
     test {RANDOMKEY against empty DB} {
         $r flushdb
         $r randomkey

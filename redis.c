@@ -434,6 +434,7 @@ static void incrbyCommand(redisClient *c);
 static void decrbyCommand(redisClient *c);
 static void selectCommand(redisClient *c);
 static void randomkeyCommand(redisClient *c);
+static void randomkeysearchCommand(redisClient *c);
 static void keysCommand(redisClient *c);
 static void dbsizeCommand(redisClient *c);
 static void lastsaveCommand(redisClient *c);
@@ -547,6 +548,7 @@ static struct redisCommand cmdTable[] = {
     {"mset",msetCommand,-3,REDIS_CMD_BULK|REDIS_CMD_DENYOOM},
     {"msetnx",msetnxCommand,-3,REDIS_CMD_BULK|REDIS_CMD_DENYOOM},
     {"randomkey",randomkeyCommand,1,REDIS_CMD_INLINE},
+    {"randomkeysearch",randomkeysearchCommand,2,REDIS_CMD_INLINE},
     {"select",selectCommand,2,REDIS_CMD_INLINE},
     {"move",moveCommand,3,REDIS_CMD_INLINE},
     {"rename",renameCommand,3,REDIS_CMD_INLINE},
@@ -3213,6 +3215,46 @@ static void selectCommand(redisClient *c) {
     } else {
         addReply(c,shared.ok);
     }
+}
+
+static void randomkeysearchCommand(redisClient *c) {
+    dictIterator *di;
+    dictEntry *de;
+
+    dict *matchingDict = dictCreate(&hashDictType,NULL);
+
+    sds pattern = c->argv[1]->ptr;
+    int plen = sdslen(pattern);
+
+    di = dictGetIterator(c->db->dict);
+    while((de = dictNext(di)) != NULL) {
+        robj *keyobj = dictGetEntryKey(de);
+        robj *valueobj = dictGetEntryVal(de);
+
+        sds key = keyobj->ptr;
+        if ((pattern[0] == '*' && pattern[1] == '\0') ||
+            stringmatchlen(pattern,plen,key,sdslen(key),0)) {
+            if (expireIfNeeded(c->db,keyobj) == 0) {
+                dictAdd(matchingDict, keyobj, valueobj);
+                incrRefCount(keyobj);
+                incrRefCount(valueobj);
+            }
+        }
+    }
+    dictReleaseIterator(di);
+
+    de = dictGetRandomKey(matchingDict);
+
+    if (de == NULL) {
+        addReply(c,shared.plus);
+        addReply(c,shared.crlf);
+    } else {
+        addReply(c,shared.plus);
+        addReply(c,dictGetEntryKey(de));
+        addReply(c,shared.crlf);
+    }
+
+    dictRelease(matchingDict);
 }
 
 static void randomkeyCommand(redisClient *c) {
