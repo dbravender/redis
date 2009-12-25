@@ -434,7 +434,7 @@ static void incrbyCommand(redisClient *c);
 static void decrbyCommand(redisClient *c);
 static void selectCommand(redisClient *c);
 static void randomkeyCommand(redisClient *c);
-static void randomkeysearchCommand(redisClient *c);
+static void randomkeymatchCommand(redisClient *c);
 static void keysCommand(redisClient *c);
 static void dbsizeCommand(redisClient *c);
 static void lastsaveCommand(redisClient *c);
@@ -548,7 +548,7 @@ static struct redisCommand cmdTable[] = {
     {"mset",msetCommand,-3,REDIS_CMD_BULK|REDIS_CMD_DENYOOM},
     {"msetnx",msetnxCommand,-3,REDIS_CMD_BULK|REDIS_CMD_DENYOOM},
     {"randomkey",randomkeyCommand,1,REDIS_CMD_INLINE},
-    {"randomkeysearch",randomkeysearchCommand,2,REDIS_CMD_INLINE},
+    {"randomkeymatch",randomkeymatchCommand,2,REDIS_CMD_INLINE},
     {"select",selectCommand,2,REDIS_CMD_INLINE},
     {"move",moveCommand,3,REDIS_CMD_INLINE},
     {"rename",renameCommand,3,REDIS_CMD_INLINE},
@@ -3217,7 +3217,7 @@ static void selectCommand(redisClient *c) {
     }
 }
 
-static void randomkeysearchCommand(redisClient *c) {
+static void randomkeymatchCommand(redisClient *c) {
     dictIterator *di;
     dictEntry *de;
 
