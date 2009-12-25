@@ -10,3 +10,5 @@ mkrelease.sh
 release
 myredis.conf
 misc/*
+appendonly.aof
+*.swp

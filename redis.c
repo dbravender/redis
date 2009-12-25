@@ -5255,6 +5255,9 @@ static void expireGenericCommand(redisClient *c, robj *key, time_t seconds) {
         if (deleteKey(c->db,key)) server.dirty++;
         addReply(c, shared.cone);
         return;
+    } else if (seconds >= LONG_MAX) {
+        addReplySds(c,
+            sdsnew("-ERR EXPIRE overflow\r\n"));
     } else {
         time_t when = time(NULL)+seconds;
         if (setExpire(c->db,key,when)) {

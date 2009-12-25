@@ -1404,6 +1404,13 @@ proc main {server port} {
         $r lrange x 0 -1
     } {bar}
 
+    test {EXPIRE - Overflow} {
+        $r flushdb
+        $r set x 10
+        catch {$r expire x 1234123413432142134} err
+        string match ERR* $err 
+    } {1}
+
     test {EXPIREAT - Check for EXPIRE alike behavior} {
         $r del x
         $r set x foo
