@@ -454,7 +454,7 @@ static void lrangeCommand(redisClient *c);
 static void ltrimCommand(redisClient *c);
 static void typeCommand(redisClient *c);
 static void lsetCommand(redisClient *c);
-static void lsearchCommand(redisClient *c);
+static void lmatchCommand(redisClient *c);
 static void saddCommand(redisClient *c);
 static void sremCommand(redisClient *c);
 static void smoveCommand(redisClient *c);
@@ -519,7 +519,7 @@ static struct redisCommand cmdTable[] = {
     {"ltrim",ltrimCommand,4,REDIS_CMD_INLINE},
     {"lrem",lremCommand,4,REDIS_CMD_BULK},
     {"rpoplpush",rpoplpushcommand,3,REDIS_CMD_BULK|REDIS_CMD_DENYOOM},
-    {"lsearch",lsearchCommand,3,REDIS_CMD_INLINE},
+    {"lmatch",lmatchCommand,3,REDIS_CMD_INLINE},
     {"sadd",saddCommand,3,REDIS_CMD_BULK|REDIS_CMD_DENYOOM},
     {"srem",sremCommand,3,REDIS_CMD_BULK},
     {"smove",smoveCommand,4,REDIS_CMD_BULK},
@@ -3790,7 +3790,7 @@ static void rpoplpushcommand(redisClient *c) {
     }
 }
 
-static void lsearchCommand(redisClient *c) {
+static void lmatchCommand(redisClient *c) {
     robj *o;
     robj *ele;
     list *list;

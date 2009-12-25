@@ -750,17 +750,17 @@ proc main {server port} {
         format $err
     } {ERR*value*}
 
-    test {LSEARCH against non list value} {
+    test {LMATCH against non list value} {
         $r set nolist foobar
-        catch {$r lsearch nolist *} err
+        catch {$r lmatch nolist *} err
         format $err
     } {ERR*value*}
 
-    test {LSEARCH} {
+    test {LMATCH} {
         $r lpush alist bar
         $r lpush alist baz
         $r lpush alist brr
-        $r lsearch alist ba*
+        $r lmatch alist ba*
     } {baz bar}
 
     test {SADD, SCARD, SISMEMBER, SMEMBERS basics} {
