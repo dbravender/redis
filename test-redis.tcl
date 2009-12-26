@@ -1411,6 +1411,13 @@ proc main {server port} {
         string match ERR* $err 
     } {1}
 
+    test {EXPIRE - Overflow in Unix timestamp} {
+        $r flushdb
+        $r set x 10
+        catch {$r expire x [expr 2147483647 - [clock seconds] + 1]} err
+        string match ERR* $err
+    } {1}
+
     test {EXPIREAT - Check for EXPIRE alike behavior} {
         $r del x
         $r set x foo
