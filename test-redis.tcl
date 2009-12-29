@@ -799,6 +799,14 @@ proc main {server port} {
         lsort [$r smembers setres]
     } {995 996 997 998 999}
 
+    test {SINTERSTORE and SUNIONSTORE behave differently - 133} {
+        $r del a
+        $r del b
+        $r sunionstore x a b
+        $r sinterstore y a b
+        list [$r exists x] [$r exists y] [$r type x] [$r type y]
+    } {1 1 set set}
+
     test {SUNIONSTORE with two sets} {
         $r sunionstore setres set1 set2
         lsort [$r smembers setres]

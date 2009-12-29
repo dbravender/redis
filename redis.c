@@ -4018,8 +4018,9 @@ static void sinterGenericCommand(redisClient *c, robj **setskeys, unsigned long 
         if (!setobj) {
             zfree(dv);
             if (dstkey) {
-                if (deleteKey(c->db,dstkey))
-                    server.dirty++;
+                // The intersection of non-existing sets is the empty set
+                dictAdd(c->db->dict,dstkey,createSetObject());
+                incrRefCount(dstkey);
                 addReply(c,shared.czero);
             } else {
                 addReply(c,shared.nullmultibulk);
