@@ -901,7 +901,7 @@ static void closeTimedoutClients(void) {
             redisLog(REDIS_DEBUG,"Closing idle client");
             freeClient(c);
         } else if (c->flags & REDIS_BLOCKED) {
-            if (c->blockingto < now) {
+            if (c->blockingto < now && c->blockingto) {
                 addReply(c,shared.nullbulk);
                 unblockClient(c);
             }
